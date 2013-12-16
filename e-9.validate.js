@@ -23,7 +23,16 @@ $( document ).ready( function() {
 		fin = '';
 
 	// ************************************************************************
-	// Funcion para validar
+	// Funcion.
+	// Si la validacion contra la expresion regular es true entonces
+	// 	muestra el parrafo de exito en el formulario.
+	// De lo contrario muestra el parrafo de error en el formulario.
+	//
+	// Parametros.
+	// value: El valor original que se evaluara.
+	// $successBlock: El objeto (parrafo) de mensaje de exito.
+	// $dangerBlock: EL objeto (parrafo) de mensaje de error.
+	// regexp: La expresiono regular contra la que se hara la validacion.
 	var validate = function ( value, $successBlock, $dangerBlock, regexp) {
 
 		// Limpia los bloques de ayuda
