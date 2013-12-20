@@ -5,8 +5,8 @@ $( document ).ready( function() {
 			patterns : {
 				alpha: /[a-zA-Z]+/,
 		        alpha_numeric: /[a-zA-Z0-9]+/,
-		        integer: /^\d+$/,
-		        number: /-?(?:\d+|\d{1,3}(?:,\d{3})+)?(?:\.\d+)?/,
+		        integer: /^-?\d+$/,
+		        decimal: /^-?(?:\d+|\d{1,3}(?:,\d{3})+)?(?:\.\d+)?$/,
 		        password: /(?=^.{8,}$)((?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/,
 		        mail: /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/,
 			},
@@ -24,20 +24,34 @@ $( document ).ready( function() {
 					mail: " Mensaje ERR MAIL"	
 				}
 			},
-			icons : {
+			icon : {
 				ok: "<i class='glyphicon glyphicon-ok'></i> ",
 				err: "<i class='glyphicon glyphicon-remove'></i> "
 			},
+			class : {
+				has_success: "has-success",
+				has_error: "has-error",
+				success_block: ".text-success",
+				danger_block: ".text-danger"
+			},
+			attribute : {
+				integer_msg: "mtr-msg-integer",
+				decimal_msg: "mtr-msg-decimal",
+				mail_msg: "mtr-msg-mail"
+			},
 			enums : {
 				integer: 0,
-				decima: 1,
+				decimal: 1,
 				mail: 2
-			}
+			},
+			trigger : 'keyup'
 		},
 
 		// Objetos del DOM
 		$hiddenBlock = $(".mtr-js-hidden-block"),
-		$validateInteger = $(".mtr-js-valid-integer"),		
+		$validateInteger = $(".mtr-js-valid-integer"),
+		$validateDecimal = $(".mtr-js-valid-decimal"),
+		$validateMail = $(".mtr-js-valid-email"),
 
 		// ************************************************************************
 		// Funcion.
@@ -52,28 +66,21 @@ $( document ).ready( function() {
 		// regexp: La expresiono regular contra la que se hara la validacion.
 		validate = function ( value, $successBlock, $dangerBlock, regexp, msgOk, msgError ) {
 
-			// Div que contiene a todos los elementos en proceso de evaluacion
-			var $grandpa = $successBlock.
-								parent().
-								parent().
-								removeClass("has-success").
-								removeClass("has-error");
-
-			// Limpia los bloques de ayuda
-			$successBlock.hide();
-			$dangerBlock.hide();
+			// Limpia los estilos y oculta los bloques de ayuda
+			var $grandpa = $successBlock.parent().parent();
+			clear( $grandpa, $successBlock, $dangerBlock );
 
 			// Validacion del input.val contra expresion regular
 			if ( regexp.exec( value ) !== null ) {
 				// Muestra help block
-				$grandpa.addClass("has-success");	
-			 	$successBlock.html( settings.icons.ok + msgOk );
+				$grandpa.addClass( settings.class.has_success );	
+			 	$successBlock.html( settings.icon.ok + msgOk );
 			 	$successBlock.show();
 			 }
 			 else {	
 			 	// Muestra help block
-			 	$grandpa.addClass("has-error");
-			 	$dangerBlock.html( settings.icons.err + msgError );
+			 	$grandpa.addClass( settings.class.has_error );
+			 	$dangerBlock.html( settings.icon.err + msgError );
 			 	$dangerBlock.show();
 			 }
 		},
@@ -87,7 +94,7 @@ $( document ).ready( function() {
 		// $successBlock: El objeto (parrafo) de mensaje de exito.
 		// $dangerBlock: EL objeto (parrafo) de mensaje de error.
 		clear = function ( $grandpa, $successBlock, $dangerBlock ) {
-			$grandpa.removeClass("has-success").removeClass("has-error");
+			$grandpa.removeClass( settings.class.has_success ).removeClass( settings.class.has_error );
 			$successBlock.hide();
 			$dangerBlock.hide();
 		},
@@ -156,24 +163,70 @@ $( document ).ready( function() {
 
 	// ************************************************************************
 	// Listener de campo de tipo integer
-	$validateInteger.on( 'keyup', function( event ) {
+	$validateInteger.on( settings.trigger, function( event ) {
 		var
 			$this = $(this),
-			$successBlock = $this.parent().find( ".text-success" ),
-			$dangerBlock = $this.parent().find( ".text-danger" );
+			$successBlock = $this.parent().find( settings.class.success_block ),
+			$dangerBlock = $this.parent().find( settings.class.danger_block );
 
-		if ( $this.val() === "" ){
+		if ( $this.val() === "" ) {
 			clear( $successBlock.parent().parent(), $successBlock, $dangerBlock );			
 		}
-		else{
+		else {
 			validate( 
 			 	$this.val(), 
 			 	$successBlock, 
 			 	$dangerBlock,
 			 	settings.patterns.integer,
-			 	getMessageOk( $successBlock, "mtr-integer-msg", settings.enums.integer ),
-			 	getMessageError( $dangerBlock, "mtr-integer-msg", settings.enums.integer ) 
+			 	getMessageOk( $successBlock, settings.attribute.integer_msg, settings.enums.integer ),
+			 	getMessageError( $dangerBlock, settings.attribute.integer_msg, settings.enums.integer ) 
 			 );			
+		}
+	});
+
+	// ************************************************************************
+	// Listener de campo de tipo decimal
+	$validateDecimal.on( settings.trigger, function( event ) {
+		var
+			$this = $(this),
+			$successBlock = $this.parent().find( settings.class.success_block ),
+			$dangerBlock = $this.parent().find( settings.class.danger_block );
+
+		if ( $this.val() === "" ) {
+			clear( $successBlock.parent().parent(), $successBlock, $dangerBlock );			
+		}
+		else {
+			validate( 
+			 	$this.val(), 
+			 	$successBlock, 
+			 	$dangerBlock,
+			 	settings.patterns.decimal,
+			 	getMessageOk( $successBlock, settings.attribute.decimal_msg, settings.enums.decimal ),
+			 	getMessageError( $dangerBlock, settings.attribute.decimal_msg, settings.enums.decimal ) 
+			 );
+		}
+	});
+
+	// ************************************************************************
+	// Listener de campo de tipo decimal
+	$validateMail.on( settings.trigger, function( event ) {
+		var
+			$this = $(this),
+			$successBlock = $this.parent().find( settings.class.success_block ),
+			$dangerBlock = $this.parent().find( settings.class.danger_block );
+
+		if ( $this.val() === "" ) {
+			clear( $successBlock.parent().parent(), $successBlock, $dangerBlock );			
+		}
+		else {
+			validate( 
+			 	$this.val(), 
+			 	$successBlock, 
+			 	$dangerBlock,
+			 	settings.patterns.mail,
+			 	getMessageOk( $successBlock, settings.attribute.mail_msg, settings.enums.mail ),
+			 	getMessageError( $dangerBlock, settings.attribute.mail_msg, settings.enums.mail ) 
+			 );
 		}
 	});
 
